@@ -105,12 +105,12 @@ init(){
     perl -pi -e 's/^zh_CN GB2312/# zh_CN GB2312/g' /etc/locale.gen
     locale-gen zh_CN.UTF-8
     # 将简体中文字符集支持写入到环境变量
-    cat << 20241204 | tee -a /etc/default/locale /etc/environment $HOME/.bashrc $HOME/.profile
+    cat << UiLgNoDkOoLtUo | tee -a /etc/default/locale /etc/environment $HOME/.bashrc $HOME/.profile
 LANGUAGE=zh_CN.UTF-8
 LC_ALL=zh_CN.UTF-8
 LANG=zh_CN.UTF-8
 LC_CTYPE=zh_CN.UTF-8
-20241204
+UiLgNoDkOoLtUo
     update-locale LANG=zh_CN.UTF-8 LC_ALL=zh_CN.UTF-8 LANGUAGE=zh_CN.UTF-8 LC_CTYPE=zh_CN.UTF-8
     # 检查字符集支持
     locale
@@ -191,9 +191,9 @@ install_config_jupyter() {
     fi
 
     # 原始源
-    export CONDA_CHANNELS=''
+    export CONDA_CHANNELS='conda-forge'
     # conda-forge 镜像加速
-    #export CONDA_CHANNELS='-c https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/' 
+    #export CONDA_CHANNELS='https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/' 
     # 安装 jupyter notebook 及其扩展
     local jupyter_packages=(
         # 一些软件包可能依赖于 zlib，如果这些软件包在你的环境中不可或缺，安装 zlib 是必要的
@@ -226,6 +226,8 @@ install_config_jupyter() {
         seaborn
         # 机器学习库
         scikit-learn
+        # 深度学习框架
+        tensorflow
         # 网络爬虫和数据提取工具
         beautifulsoup4
         requests
@@ -237,22 +239,8 @@ install_config_jupyter() {
         httpx
     )
 
-    # 根据架构选择安装 tensorflow
-    ARCH_RAW=$(uname -m)
-    case "$ARCH_RAW" in
-    'x86_64')
-        jupyter_packages+=(tensorflow)
-        ;;
-    'aarch64' | 'arm64')
-        python -m pip --no-cache-dir install -v tensorflow-aarch64 --break-system-packages --root-user-action=ignore ${PYPI_CHANNELS}
-        ;;
-    *)
-        echo "Unsupported architecture: $ARCH_RAW"
-        ;;
-    esac
-
     # 合并安装
-    mamba install "${jupyter_packages[@]}" ${CONDA_CHANNELS} -fy
+    mamba install "${jupyter_packages[@]}" -c ${CONDA_CHANNELS} -fy
 
     # 清理缓存
     mamba clean --all -y
