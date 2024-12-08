@@ -239,7 +239,7 @@ install_config_jupyter() {
         httpx
     )
 
-    # 根据架构选择安装 tensorflow
+    # 根据架构选择安装深度学习框架 tensorflow
     ARCH_RAW=$(uname -m)
     case "$ARCH_RAW" in
     'x86_64')
