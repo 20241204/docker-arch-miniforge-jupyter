@@ -272,7 +272,6 @@ install_config_jupyter() {
 
     # 查看 jupyter 版本
     jupyter --version
-    rm -fv requirements.txt
 }
 
 config_jbang_ijava(){
