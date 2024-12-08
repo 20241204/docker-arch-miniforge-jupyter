@@ -191,9 +191,9 @@ install_config_jupyter() {
     fi
 
     # 原始源
-    export CONDA_CHANNELS='conda-forge'
+    export CONDA_CHANNELS=''
     # conda-forge 镜像加速
-    #export CONDA_CHANNELS='https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/' 
+    #export CONDA_CHANNELS='-c https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/' 
     # 安装 jupyter notebook 及其扩展
     local jupyter_packages=(
         # 一些软件包可能依赖于 zlib，如果这些软件包在你的环境中不可或缺，安装 zlib 是必要的
@@ -252,7 +252,7 @@ install_config_jupyter() {
     esac
 
     # 合并安装
-    mamba install "${jupyter_packages[@]}" -c ${CONDA_CHANNELS} -fy
+    mamba install "${jupyter_packages[@]}" ${CONDA_CHANNELS} -fy
 
     # 清理缓存
     mamba clean --all -y
