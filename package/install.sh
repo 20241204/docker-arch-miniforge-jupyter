@@ -144,13 +144,23 @@ LC_CTYPE=zh_CN.UTF-8
 }
 
 install_config_jupyter() {
+    # pypi 加速源
+    PYPI_CHANNELS=''
+    #export PYPI_CHANNELS='-i https://pypi.tuna.tsinghua.edu.cn/simple' 
+
+    # conda 原始源
+    export CONDA_CHANNELS='conda-forge'
+    # conda-forge 镜像加速
+    #export CONDA_CHANNELS='https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/' 
+
     # 使用 mamba 创建一个名为cling的环境 
-    mamba create -n cling -c default -fy
+    # mamba create -n cling -fy
+    mamba create -n cling python=3.12 -fy
     source activate cling
 
     # 更新 mamba 和 conda
-    mamba update -n base -c default mamba -fy
-    mamba update -n base -c default conda -fy
+    mamba update -n base mamba -fy
+    mamba update -n base conda -fy
 
     # 创建 python 软链接
     if [ -e $(command -v python3) ]
@@ -164,10 +174,6 @@ install_config_jupyter() {
     # 获取Python版本
     version=$(python --version 2>&1 | awk '{print $2}')
     IFS='.' read -ra ADDR <<< "$version"
-
-    # pypi 加速源
-    PYPI_CHANNELS=''
-    #export PYPI_CHANNELS='-i https://pypi.tuna.tsinghua.edu.cn/simple' 
 
     # 检查版本是否为2
     if [[ ${ADDR[0]} -eq 2 ]]
@@ -190,10 +196,6 @@ install_config_jupyter() {
         echo "超出版本预期，脚本需要更新！！"
     fi
 
-    # 原始源
-    export CONDA_CHANNELS='conda-forge'
-    # conda-forge 镜像加速
-    #export CONDA_CHANNELS='https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/' 
     # 安装 jupyter notebook 及其扩展
     local jupyter_packages=(
         # 一些软件包可能依赖于 zlib，如果这些软件包在你的环境中不可或缺，安装 zlib 是必要的
@@ -253,6 +255,14 @@ install_config_jupyter() {
 
     # 合并安装
     mamba install "${jupyter_packages[@]}" -c ${CONDA_CHANNELS} -fy
+    # 使用 for 循环逐个安装包
+    # for package in "${jupyter_packages[@]}"; do
+    #     echo "正在安装: $package"
+    #     mamba install "$package" -c ${CONDA_CHANNELS} -fy || {
+    #         echo "安装 $package 时出错，停止安装。"
+    #         exit 1
+    #     }
+    # done
 
     # 清理缓存
     mamba clean --all -y
