@@ -108,8 +108,15 @@ init(){
     perl -pi -e 's/^en_GB.UTF-8 UTF-8/# en_GB.UTF-8 UTF-8/g' /etc/locale.gen
     perl -pi -e 's/^zh_CN GB2312/# zh_CN GB2312/g' /etc/locale.gen
     locale-gen zh_CN.UTF-8
+
+    # 加载简体中文字符集环境变量
+    LANGUAGE=zh_CN.UTF-8
+    LC_ALL=zh_CN.UTF-8
+    LANG=zh_CN.UTF-8
+    LC_CTYPE=zh_CN.UTF-8
+
     # 将简体中文字符集支持写入到环境变量
-    cat << 20241204 | tee -a /etc/default/locale /etc/environment $HOME/.bashrc $HOME/.profile
+    cat << '20241204' | tee -a /etc/default/locale /etc/environment $HOME/.bashrc $HOME/.profile
 LANGUAGE=zh_CN.UTF-8
 LC_ALL=zh_CN.UTF-8
 LANG=zh_CN.UTF-8
@@ -140,11 +147,6 @@ LC_CTYPE=zh_CN.UTF-8
 
     # 激活 mamba 环境并运行初始化脚本
     mamba init bash
-
-    # 暂时关闭 set -u 以避免 PS1 变量未定义错误
-    set +u
-    source $HOME/.bashrc
-    set -u
 }
 
 install_config_jupyter() {
@@ -156,52 +158,6 @@ install_config_jupyter() {
     export CONDA_CHANNELS='conda-forge'
     # conda-forge 镜像加速
     #export CONDA_CHANNELS='https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/' 
-
-    # 使用 mamba 创建一个名为cling的环境 
-    # mamba create -n cling -fy
-    mamba create -n cling python=3.12 -fy
-    source activate cling
-
-    # 更新 mamba 和 conda
-    mamba update -n base mamba -fy
-    mamba update -n base conda -fy
-
-    # 创建 python 软链接
-    if [ -e $(command -v python3) ]
-    then
-        ln -fsv $(command -v python3) /usr/bin/python
-        ln -fsv $(command -v pip3) /usr/bin/pip
-    else
-        echo "python3 没找到"
-    fi
-
-    # 获取Python版本
-    version=$(python --version 2>&1 | awk '{print $2}')
-    IFS='.' read -ra ADDR <<< "$version"
-
-    # 检查版本是否为2
-    if [[ ${ADDR[0]} -eq 2 ]]
-    then
-        echo "版本过低 python2"
-    elif [[ ${ADDR[0]} -eq 3 ]]
-    then
-        # 检查版本是否小于等于3.10
-        if [[ ${ADDR[1]} -le 10 ]]
-        then
-            echo "python 版本 ${ADDR[0]}.${ADDR[1]}"
-            python -m pip --no-cache-dir install -v --upgrade pip --root-user-action=ignore ${PYPI_CHANNELS}
-            # 安装爬虫工具 requests 深度学习框架 tensorflow
-            python -m pip --no-cache-dir install -v requests tensorflow --root-user-action=ignore ${PYPI_CHANNELS}
-        else
-            echo "python 版本 ${ADDR[0]}.${ADDR[1]}"
-            python -m pip --no-cache-dir install -v --upgrade pip --break-system-packages --root-user-action=ignore ${PYPI_CHANNELS}
-            # 安装爬虫工具 requests 深度学习框架 tensorflow
-            python -m pip --no-cache-dir install -v requests tensorflow --break-system-packages --root-user-action=ignore ${PYPI_CHANNELS}
-            
-        fi
-    else
-        echo "超出版本预期，脚本需要更新！！"
-    fi
 
     # 安装 jupyter notebook 及其扩展
     local jupyter_packages=(
@@ -244,6 +200,54 @@ install_config_jupyter() {
         # 现代HTTP客户端，支持异步请求
         httpx
     )
+
+    # 使用 mamba 创建一个名为 cling 的环境 
+    # mamba create -n cling -fy
+    mamba create -n cling python=3.11 -fy
+    source activate cling
+
+    # 更新 mamba 和 conda
+    mamba update -n base mamba -fy
+    mamba update -n base conda -fy
+
+    # 创建 python 软链接
+    if [ -e $(command -v python3) ]
+    then
+        ln -fsv $(command -v python3) /usr/bin/python
+        ln -fsv $(command -v pip3) /usr/bin/pip
+    else
+        echo "python3 没找到"
+    fi
+
+    # 获取Python版本
+    version=$(python --version 2>&1 | awk '{print $2}')
+    IFS='.' read -ra ADDR <<< "$version"
+
+    # 检查版本是否为2
+    if [[ ${ADDR[0]} -eq 2 ]]
+    then
+        echo "版本过低 python2"
+    elif [[ ${ADDR[0]} -eq 3 ]]
+    then
+        # 检查版本是否小于等于3.10
+        if [[ ${ADDR[1]} -le 10 ]]
+        then
+            echo "python 版本 ${ADDR[0]}.${ADDR[1]}"
+            python -m pip --no-cache-dir install -v --upgrade pip --root-user-action=ignore ${PYPI_CHANNELS}
+            # 安装爬虫工具 requests 和 深度学习框架 tensorflow
+            python -m pip --no-cache-dir install -v requests tensorflow --root-user-action=ignore ${PYPI_CHANNELS}
+        else
+            echo "python 版本 ${ADDR[0]}.${ADDR[1]}"
+            python -m pip --no-cache-dir install -v --upgrade pip --break-system-packages --root-user-action=ignore ${PYPI_CHANNELS}
+            # 安装爬虫工具 requests 和 深度学习框架 tensorflow
+            python -m pip --no-cache-dir install -v requests tensorflow --break-system-packages --root-user-action=ignore ${PYPI_CHANNELS}
+            
+        fi
+    else
+        echo "超出版本预期，脚本需要更新！！"
+    fi
+
+
 
     # 合并安装
     # mamba install "${jupyter_packages[@]}" -c ${CONDA_CHANNELS} -fy
@@ -331,11 +335,11 @@ download_config_jdk() {
     ln -fsv /opt/$(ls -al /opt | grep jdk | awk '{print $9}' | tail -1) $HOME/.jbang/currentjdk
 
     # 写入 java 环境变量
-    cat << EOF | tee -a $HOME/.bashrc
-export CLASSPATH=.:\$JAVA_HOME/lib
-export PATH=\$PATH:\$JAVA_HOME/bin
+    cat << '20241204' | tee -a /etc/default/locale /etc/environment $HOME/.bashrc $HOME/.profile
+export CLASSPATH=.:$JAVA_HOME/lib
+export PATH=$PATH:$JAVA_HOME/bin
 source activate cling
-EOF
+20241204
     rm -fv /tmp/OpenJDK-jdk_hotspot.tar.gz
 }
 
