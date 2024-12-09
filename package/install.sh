@@ -198,7 +198,7 @@ install_config_jupyter() {
                 python -m pip --no-cache-dir install -v tensorflow --root-user-action=ignore ${PYPI_CHANNELS}
                 ;;
             'aarch64' | 'arm64')
-                python -m pip --no-cache-dir install -v tensorflow-aarch64 --root-user-action=ignore ${PYPI_CHANNELS}
+                python -m pip --no-cache-dir install -v tensorflow --root-user-action=ignore ${PYPI_CHANNELS}
                 ;;
             *)
                 echo "Unsupported architecture: $ARCH_RAW"
@@ -215,7 +215,7 @@ install_config_jupyter() {
                 python -m pip --no-cache-dir install -v tensorflow --break-system-packages --root-user-action=ignore ${PYPI_CHANNELS}
                 ;;
             'aarch64' | 'arm64')
-                python -m pip --no-cache-dir install -v tensorflow-aarch64 --break-system-packages --root-user-action=ignore ${PYPI_CHANNELS}
+                python -m pip --no-cache-dir install -v tensorflow --break-system-packages --root-user-action=ignore ${PYPI_CHANNELS}
                 ;;
             *)
                 echo "Unsupported architecture: $ARCH_RAW"
