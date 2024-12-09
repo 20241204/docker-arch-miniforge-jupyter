@@ -270,15 +270,15 @@ install_config_jupyter() {
     )
 
     # 合并安装
-    mamba install "${jupyter_packages[@]}" -c ${CONDA_CHANNELS} -fy
+    # mamba install "${jupyter_packages[@]}" -c ${CONDA_CHANNELS} -fy
     # 使用 for 循环逐个安装包
-    # for package in "${jupyter_packages[@]}"; do
-    #     echo "正在安装: $package"
-    #     mamba install "$package" -c ${CONDA_CHANNELS} -fy || {
-    #         echo "安装 $package 时出错，停止安装。"
-    #         exit 1
-    #     }
-    # done
+    for package in "${jupyter_packages[@]}"; do
+        echo "正在安装: $package"
+        mamba install "$package" -c ${CONDA_CHANNELS} -fy || {
+            echo "安装 $package 时出错，停止安装。"
+            exit 1
+        }
+    done
 
     # 清理缓存
     mamba clean --all -y
