@@ -190,37 +190,14 @@ install_config_jupyter() {
         then
             echo "python 版本 ${ADDR[0]}.${ADDR[1]}"
             python -m pip --no-cache-dir install -v --upgrade pip --root-user-action=ignore ${PYPI_CHANNELS}
-            python -m pip --no-cache-dir install -v requests --root-user-action=ignore ${PYPI_CHANNELS}
-            # 根据架构选择安装深度学习框架 tensorflow
-            ARCH_RAW=$(uname -m)
-            case "$ARCH_RAW" in
-            'x86_64')
-                python -m pip --no-cache-dir install -v tensorflow --root-user-action=ignore ${PYPI_CHANNELS}
-                ;;
-            'aarch64' | 'arm64')
-                python -m pip --no-cache-dir install -v tensorflow --root-user-action=ignore ${PYPI_CHANNELS}
-                ;;
-            *)
-                echo "Unsupported architecture: $ARCH_RAW"
-                ;;
-            esac
+            # 安装爬虫工具 requests 深度学习框架 tensorflow
+            python -m pip --no-cache-dir install -v requests tensorflow --root-user-action=ignore ${PYPI_CHANNELS}
         else
             echo "python 版本 ${ADDR[0]}.${ADDR[1]}"
             python -m pip --no-cache-dir install -v --upgrade pip --break-system-packages --root-user-action=ignore ${PYPI_CHANNELS}
-            python -m pip --no-cache-dir install -v requests --break-system-packages --root-user-action=ignore ${PYPI_CHANNELS}
-            # 根据架构选择安装深度学习框架 tensorflow
-            ARCH_RAW=$(uname -m)
-            case "$ARCH_RAW" in
-            'x86_64')
-                python -m pip --no-cache-dir install -v tensorflow --break-system-packages --root-user-action=ignore ${PYPI_CHANNELS}
-                ;;
-            'aarch64' | 'arm64')
-                python -m pip --no-cache-dir install -v tensorflow --break-system-packages --root-user-action=ignore ${PYPI_CHANNELS}
-                ;;
-            *)
-                echo "Unsupported architecture: $ARCH_RAW"
-                ;;
-            esac
+            # 安装爬虫工具 requests 深度学习框架 tensorflow
+            python -m pip --no-cache-dir install -v requests tensorflow --break-system-packages --root-user-action=ignore ${PYPI_CHANNELS}
+            
         fi
     else
         echo "超出版本预期，脚本需要更新！！"
@@ -260,7 +237,6 @@ install_config_jupyter() {
         scikit-learn
         # 网络爬虫和数据提取工具
         beautifulsoup4
-        requests
         # 数据库抽象层
         SQLAlchemy
         # 简单的重试库
