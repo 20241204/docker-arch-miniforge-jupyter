@@ -65,8 +65,12 @@ init(){
     #ln -fsv /usr/bin/bash /usr/bin/sh
 
     # 将执行脚本移动到可执行目录并授权
-    mv -fv run_jupyter /usr/bin/
-    chmod -v a+x /usr/bin/run_jupyter
+    if [ -e "$(command -v run_jupyter)" ]; then
+        echo '文件存在'
+    else
+        mv -fv run_jupyter /usr/bin/
+        chmod -v a+x /usr/bin/run_jupyter
+    fi
 
     # 改时区 安装基本命令
     date '+%Y-%m-%d %T'
@@ -155,7 +159,7 @@ install_config_jupyter() {
 
     # 使用 mamba 创建一个名为cling的环境 
     # mamba create -n cling -fy
-    mamba create -n cling python=3.11 -fy
+    mamba create -n cling python=3.12 -fy
     source activate cling
 
     # 更新 mamba 和 conda
@@ -187,10 +191,36 @@ install_config_jupyter() {
             echo "python 版本 ${ADDR[0]}.${ADDR[1]}"
             python -m pip --no-cache-dir install -v --upgrade pip --root-user-action=ignore ${PYPI_CHANNELS}
             python -m pip --no-cache-dir install -v requests --root-user-action=ignore ${PYPI_CHANNELS}
+            # 根据架构选择安装深度学习框架 tensorflow
+            ARCH_RAW=$(uname -m)
+            case "$ARCH_RAW" in
+            'x86_64')
+                python -m pip --no-cache-dir install -v tensorflow --root-user-action=ignore ${PYPI_CHANNELS}
+                ;;
+            'aarch64' | 'arm64')
+                python -m pip --no-cache-dir install -v tensorflow-aarch64 --root-user-action=ignore ${PYPI_CHANNELS}
+                ;;
+            *)
+                echo "Unsupported architecture: $ARCH_RAW"
+                ;;
+            esac
         else
             echo "python 版本 ${ADDR[0]}.${ADDR[1]}"
             python -m pip --no-cache-dir install -v --upgrade pip --break-system-packages --root-user-action=ignore ${PYPI_CHANNELS}
             python -m pip --no-cache-dir install -v requests --break-system-packages --root-user-action=ignore ${PYPI_CHANNELS}
+            # 根据架构选择安装深度学习框架 tensorflow
+            ARCH_RAW=$(uname -m)
+            case "$ARCH_RAW" in
+            'x86_64')
+                python -m pip --no-cache-dir install -v tensorflow --break-system-packages --root-user-action=ignore ${PYPI_CHANNELS}
+                ;;
+            'aarch64' | 'arm64')
+                python -m pip --no-cache-dir install -v tensorflow-aarch64 --break-system-packages --root-user-action=ignore ${PYPI_CHANNELS}
+                ;;
+            *)
+                echo "Unsupported architecture: $ARCH_RAW"
+                ;;
+            esac
         fi
     else
         echo "超出版本预期，脚本需要更新！！"
@@ -238,20 +268,6 @@ install_config_jupyter() {
         # 现代HTTP客户端，支持异步请求
         httpx
     )
-
-    # 根据架构选择安装深度学习框架 tensorflow
-    ARCH_RAW=$(uname -m)
-    case "$ARCH_RAW" in
-    'x86_64')
-        jupyter_packages+=(tensorflow)
-        ;;
-    'aarch64' | 'arm64')
-        python -m pip --no-cache-dir install -v tensorflow-aarch64 --break-system-packages --root-user-action=ignore ${PYPI_CHANNELS}
-        ;;
-    *)
-        echo "Unsupported architecture: $ARCH_RAW"
-        ;;
-    esac
 
     # 合并安装
     mamba install "${jupyter_packages[@]}" -c ${CONDA_CHANNELS} -fy
