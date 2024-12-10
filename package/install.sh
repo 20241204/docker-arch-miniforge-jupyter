@@ -101,7 +101,15 @@ init(){
         locales
     )
     # 合并安装
-    eatmydata aptitude --without-recommends -o APT::Get::Fix-Missing=true -fy install "${packages[@]}"
+    # eatmydata aptitude --without-recommends -o APT::Get::Fix-Missing=true -fy install "${packages[@]}"
+    # 使用 for 循环逐个安装包
+    for package in "${packages[@]}"; do
+        echo "正在安装: $package"
+        eatmydata aptitude --without-recommends -o APT::Get::Fix-Missing=true -fy install "$package" || {
+            echo "安装 $package 时出错，停止安装。"
+            exit 1
+        }
+    done
 
     # 配置简体中文字符集支持
     perl -pi -e 's/^# zh_CN.UTF-8 UTF-8/zh_CN.UTF-8 UTF-8/g' /etc/locale.gen
