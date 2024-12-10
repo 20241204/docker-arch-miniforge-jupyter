@@ -203,7 +203,7 @@ install_config_jupyter() {
 
     # 使用 mamba 创建一个名为 cling 的环境 
     # mamba create -n cling -fy
-    mamba create -n cling python=3.11 -fy
+    mamba create -n cling -fy
     source activate cling
 
     # 更新 mamba 和 conda
